@@ -1,0 +1,46 @@
+service: standups-api
+app: standups-api
+org: upstandfm
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: api.upstand.fm
+    basePath: standups
+    stage: ${opt:stage, 'prod'}
+    createRoute53Record: false
+  cors:
+    origin: '*'
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'prod'}
+  region: ${opt:region, 'eu-central-1'}
+  memorySize: 128
+  timeout: 3
+  deploymentBucket:
+    name: upstandfm-deployments
+    serverSideEncryption: AES256 # when using server-side encryption
+  environment:
+    CORS_ALLOW_ORIGIN: ${self:custom.cors.origin}
+
+package:
+  exclude:
+    - ./*
+    - ./**/*.test.js
+  include:
+    - node_modules
+    - src
+
+functions:
+  status:
+    handler: src/handler.status
+    description: Returns status
+    events:
+      - http:
+          method: get
+          path: /
+          cors: ${self:custom.cors}
