@@ -6,13 +6,26 @@ module.exports = {
   /**
    * Create a standup.
    *
+   * This operation uses a transaction to also add a "user entry" item for the
+   * created standup, in order to associate the created standup with the user
+   * who created it.
+   * This allows us to fetch all users for a standup, and (in combination with
+   * an inverted GSI) to fetch all standups for a user.
+   *
+   * For more info on DynamoDB transactions see:
+   * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html
+   *
+   * For SDK documentation see:
+   * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#transactWrite-property
+   *
    * @param {Object} client - DynamoDB document client
    * @param {String} tableName - DynamoDB table name
    * @param {Object} standupData
+   * @param {String} userId
    *
    * @return {Promise} Resolves with DynamoDB data
    */
-  create(client, tableName, standupData) {
+  create(client, tableName, standupData, userId) {
     const id = shortid.generate();
     const now = Date.now();
     const insertData = {
@@ -23,20 +36,34 @@ module.exports = {
     };
 
     const params = {
-      TableName: tableName,
-      Item: {
-        pk: `standup#${id}`,
-        sk: `standup#${id}`,
-        ...insertData
-      }
+      TransactItems: [
+        {
+          Put: {
+            TableName: tableName,
+            Item: {
+              pk: `standup#${id}`,
+              sk: `standup#${id}`,
+              ...insertData
+            }
+          }
+        },
+        {
+          Put: {
+            TableName: tableName,
+            Item: {
+              pk: `standup#${id}`,
+              sk: `user#${userId}`
+            }
+          }
+        }
+      ]
     };
     return client
-      .put(params)
+      .transactWrite(params)
       .promise()
       .then(() => {
-        // The "put" operation only supports ALL_OLD or NONE for return data
-        // Therefore we have to return the inserted data ourselves, because
-        // there are no "old" values when inserting a new item
+        // The "transactWrite" operation does not return the written data,
+        // therefore we have to return the inserted data ourselves
         return insertData;
       });
   }

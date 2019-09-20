@@ -44,7 +44,7 @@ const documentClient = new DynamoDB.DocumentClient({
 module.exports.createStandup = async (event, context) => {
   try {
     const { authorizer } = event.requestContext;
-    const { scope } = authorizer;
+    const { scope, userId } = authorizer;
 
     const isAuthorized = checkSymbols(scope, CREATE_STANDUP_SCOPE);
     if (!isAuthorized) {
@@ -59,7 +59,8 @@ module.exports.createStandup = async (event, context) => {
     const createdItem = await standups.create(
       documentClient,
       DYNAMODB_TABLE_NAME,
-      standupData
+      standupData,
+      userId
     );
     return sendRes.json(201, createdItem);
   } catch (err) {
