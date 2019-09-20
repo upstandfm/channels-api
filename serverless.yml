@@ -1,6 +1,6 @@
-service: standups-api
-app: standups-api
 org: upstandfm
+app: api
+service: standups-api
 
 plugins:
   - serverless-domain-manager
@@ -13,6 +13,13 @@ custom:
     createRoute53Record: false
   cors:
     origin: '*'
+  authorizer:
+    arn: ${secrets:AUTH0_AUTHORIZER_ARN}
+    resultTtlInSeconds: 60
+    identitySource: method.request.header.Authorization
+    # Note that Bearer must be capitalized.
+    identityValidationExpression: '^Bearer [-0-9a-zA-z\.]*$'
+    type: token
 
 provider:
   name: aws
@@ -27,6 +34,19 @@ provider:
     serverSideEncryption: AES256 # when using server-side encryption
   environment:
     CORS_ALLOW_ORIGIN: ${self:custom.cors.origin}
+    # The ARN has the format "arn:aws:dynamodb:::table/tableName"
+    # Splitting on "/" gives us the name.
+    DYNAMODB_TABLE_NAME:
+      'Fn::Select':
+        ['1', { 'Fn::Split': ['/', '${state:infra.standupsTableArn}'] }]
+    CREATE_STANDUP_SCOPE: 'create:standup'
+
+  # See: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_actions-resources-contextkeys.html
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: ${state:infra.standupsTableArn}
 
 package:
   exclude:
@@ -37,11 +57,33 @@ package:
     - src
 
 functions:
-  status:
-    handler: src/handler.status
-    description: Returns status
+  createStandup:
+    handler: src/handler.createStandup
+    description: Creates a standup
     events:
       - http:
-          method: get
+          method: post
           path: /
           cors: ${self:custom.cors}
+          authorizer: ${self:custom.authorizer}
+
+resources:
+  Resources:
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
