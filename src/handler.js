@@ -28,14 +28,14 @@ const documentClient = new DynamoDB.DocumentClient({
  * Lambda APIG proxy integration that creates a standup.
  *
  * @param {Object} event - HTTP input
- * @param {Object} event - Lambda context
+ * @param {Object} context - AWS lambda context
  *
  * @return {Object} HTTP output
  *
  * For more info on HTTP input see:
  * https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
  *
- * For more info on Lambda context see:
+ * For more info on AWS lambda context see:
  * https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
  *
  * For more info on HTTP output see:
