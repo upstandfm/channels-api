@@ -52,7 +52,13 @@ module.exports = {
             TableName: tableName,
             Item: {
               pk: `standup#${id}`,
-              sk: `user#${userId}`
+              sk: `user#${userId}`,
+              standupId: id,
+              standupName: insertData.name,
+              userId,
+
+              // TODO: add the users full name
+              userFullName: ''
             }
           }
         }
@@ -66,5 +72,43 @@ module.exports = {
         // therefore we have to return the inserted data ourselves
         return insertData;
       });
+  },
+
+  /**
+   * Get all standups for a user.
+   *
+   * @param {Object} client - DynamoDB document client
+   * @param {String} tableName - DynamoDB table name
+   * @param {String} indexName - DynamoDB index name
+   * @param {String} userId
+   * @param {Number} limit - How many items to get
+   * @param {Object} exclusiveStartKey - DynamoDB primary key
+   *
+   * @return {Promise} Resolves with DynamoDB data
+   *
+   * For SDK documentation see:
+   * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property
+   */
+  getAllForUser(
+    client,
+    tableName,
+    indexName,
+    userId,
+    limit,
+    exclusiveStartKey
+  ) {
+    const params = {
+      TableName: tableName,
+      IndexName: indexName,
+      ExpressionAttributeValues: {
+        ':sk': `user#${userId}`, // this is now the partition key
+        ':pk_start': 'standup#' // this is now the sort key
+      },
+      KeyConditionExpression: 'sk = :sk and begins_with(pk, :pk_start)',
+      ProjectionExpression: 'standupId, standupName',
+      Limit: limit,
+      ExclusiveStartKey: exclusiveStartKey
+    };
+    return client.query(params).promise();
   }
 };
