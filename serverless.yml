@@ -17,7 +17,7 @@ custom:
     arn: ${secrets:AUTH0_AUTHORIZER_ARN}
     resultTtlInSeconds: 60
     identitySource: method.request.header.Authorization
-    # Note that Bearer must be capitalized.
+    # Note that Bearer must be capitalized
     identityValidationExpression: '^Bearer [-0-9a-zA-z\.]*$'
     type: token
 
@@ -35,11 +35,14 @@ provider:
   environment:
     CORS_ALLOW_ORIGIN: ${self:custom.cors.origin}
     # The ARN has the format "arn:aws:dynamodb:::table/tableName"
-    # Splitting on "/" gives us the name.
+    # Splitting on "/" gives us the name
     DYNAMODB_TABLE_NAME:
       'Fn::Select':
         ['1', { 'Fn::Split': ['/', '${state:infra.standupsTableArn}'] }]
+    DYNAMODB_INVERTED_INDEX_NAME: ${state:infra.standupsInvertedIndex}
+    DEFAULT_QUERY_LIMIT: 10
     CREATE_STANDUP_SCOPE: 'create:standup'
+    READ_STANDUPS_SCOPE: 'read:standups'
 
   # See: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_actions-resources-contextkeys.html
   iamRoleStatements:
@@ -47,6 +50,21 @@ provider:
       Action:
         - dynamodb:PutItem
       Resource: ${state:infra.standupsTableArn}
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      # The ARN has the format "arn:aws:dynamodb:::table/tableName/index/indexName"
+      # Joining on "/" gives us the ARN of the index
+      Resource:
+        'Fn::Join':
+          [
+            '/',
+            [
+              '${state:infra.standupsTableArn}',
+              'index',
+              '${state:infra.standupsInvertedIndex}',
+            ],
+          ]
 
 package:
   exclude:
@@ -64,6 +82,20 @@ functions:
       - http:
           method: post
           path: /
+          cors: ${self:custom.cors}
+          authorizer: ${self:custom.authorizer}
+  getStandups:
+    handler: src/handler.getStandups
+    description: Gets all standups for a user
+    events:
+      - http:
+          method: get
+          path: /
+          request:
+            parameters:
+              queryStrings:
+                limit: false # optional query param
+                cursor: false # optional query param
           cors: ${self:custom.cors}
           authorizer: ${self:custom.authorizer}
 

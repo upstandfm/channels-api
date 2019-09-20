@@ -4,7 +4,7 @@
   "private": true,
   "description": "Standups RESTful API.",
   "scripts": {
-    "test": "exit 0;",
+    "test": "jest",
     "lint": "eslint 'src/**/*.js'",
     "lint:format": "npm run lint -- --fix",
     "sls:debug": "serverless print"
