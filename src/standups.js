@@ -110,5 +110,65 @@ module.exports = {
       ExclusiveStartKey: exclusiveStartKey
     };
     return client.query(params).promise();
+  },
+
+  /**
+   * Get a single standup for a user.
+   *
+   * This operation uses a transaction to also check if the user is associated
+   * with the standup.
+   *
+   * For more info on DynamoDB transactions see:
+   * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html
+   *
+   * For SDK documentation see:
+   * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#transactGet-property
+   *
+   * @param {Object} client - DynamoDB document client
+   * @param {String} tableName - DynamoDB table name
+   * @param {String} standupId
+   * @param {String} userId
+   *
+   * @return {Promise} Resolves with DynamoDB data
+   */
+  getForUser(client, tableName, standupId, userId) {
+    const params = {
+      TransactItems: [
+        {
+          Get: {
+            TableName: tableName,
+            Key: {
+              pk: `standup#${standupId}`,
+              sk: `user#${userId}`
+            }
+          }
+        },
+        {
+          Get: {
+            TableName: tableName,
+            Key: {
+              pk: `standup#${standupId}`,
+              sk: `standup#${standupId}`
+            },
+            ProjectionExpression: 'standupId, standupName, createdAt, updatedAt'
+          }
+        }
+      ]
+    };
+    return client
+      .transactGet(params)
+      .promise()
+      .then(data => {
+        const [userItem, standupItem] = data.Responses;
+
+        if (!userItem.Item) {
+          const err = new Error('Not Found');
+          err.statusCode = 404;
+          err.details = 'you might not be a member of this standup';
+          throw err;
+        }
+
+        return standupItem.Item;
+      });
   }
 };

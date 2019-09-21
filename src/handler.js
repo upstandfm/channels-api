@@ -15,7 +15,8 @@ const {
   DYNAMODB_INVERTED_INDEX_NAME,
   DEFAULT_QUERY_LIMIT,
   CREATE_STANDUP_SCOPE,
-  READ_STANDUPS_SCOPE
+  READ_STANDUPS_SCOPE,
+  READ_STANDUP_SCOPE
 } = process.env;
 
 const defaultHeaders = {
@@ -110,6 +111,42 @@ module.exports.getStandups = async (event, context) => {
       }
     };
     return sendRes.json(200, resData);
+  } catch (err) {
+    return handleAndSendError(context, err, sendRes);
+  }
+};
+
+/**
+ * Lambda APIG proxy integration that gets a single standups for a user.
+ *
+ * @param {Object} event - HTTP input
+ * @param {Object} context - AWS lambda context
+ *
+ * @return {Object} HTTP output
+ *
+ * For more info on HTTP input see:
+ * https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+ *
+ * For more info on AWS lambda context see:
+ * https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
+ *
+ * For more info on HTTP output see:
+ * https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
+ */
+module.exports.getStandup = async (event, context) => {
+  try {
+    const { authorizer } = event.requestContext;
+
+    validateScope(authorizer.scope, READ_STANDUP_SCOPE);
+
+    const { standupId } = event.pathParameters;
+    const userStandup = await standups.getForUser(
+      documentClient,
+      DYNAMODB_TABLE_NAME,
+      standupId,
+      authorizer.userId
+    );
+    return sendRes.json(200, userStandup);
   } catch (err) {
     return handleAndSendError(context, err, sendRes);
   }
