@@ -54,7 +54,7 @@ module.exports = {
               pk: `standup#${id}`,
               sk: `user#${userId}`,
               standupId: id,
-              standupName: insertData.name,
+              standupName: insertData.standupName,
               userId,
 
               // TODO: add the users full name
