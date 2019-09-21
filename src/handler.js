@@ -3,10 +3,10 @@
 const DynamoDB = require('aws-sdk/clients/dynamodb');
 const bodyParser = require('@mooncake-dev/lambda-body-parser');
 const createResHandler = require('@mooncake-dev/lambda-res-handler');
-const checkSymbols = require('@mooncake-dev/check-symbols');
 const schema = require('./schema');
 const standups = require('./standups');
 const pageCursor = require('./page-cursor');
+const validateScope = require('./validate-scope');
 const handleError = require('./handle-error');
 
 const {
@@ -49,15 +49,8 @@ const documentClient = new DynamoDB.DocumentClient({
 module.exports.createStandup = async (event, context) => {
   try {
     const { authorizer } = event.requestContext;
-    const { scope, userId } = authorizer;
 
-    const isAuthorized = checkSymbols(scope, CREATE_STANDUP_SCOPE);
-    if (!isAuthorized) {
-      const error = new Error('Forbidden');
-      error.statusCode = 403;
-      error.details = `you need scope "${CREATE_STANDUP_SCOPE}"`;
-      throw error;
-    }
+    validateScope(authorizer.scope, CREATE_STANDUP_SCOPE);
 
     const body = bodyParser.json(event.body);
     const standupData = schema.validateStandup(body);
@@ -65,7 +58,7 @@ module.exports.createStandup = async (event, context) => {
       documentClient,
       DYNAMODB_TABLE_NAME,
       standupData,
-      userId
+      authorizer.userId
     );
     return sendRes.json(201, createdItem);
   } catch (err) {
@@ -93,15 +86,8 @@ module.exports.createStandup = async (event, context) => {
 module.exports.getStandups = async (event, context) => {
   try {
     const { authorizer } = event.requestContext;
-    const { scope, userId } = authorizer;
 
-    const isAuthorized = checkSymbols(scope, READ_STANDUPS_SCOPE);
-    if (!isAuthorized) {
-      const error = new Error('Forbidden');
-      error.statusCode = 403;
-      error.details = `you need scope "${READ_STANDUPS_SCOPE}"`;
-      throw error;
-    }
+    validateScope(authorizer.scope, READ_STANDUPS_SCOPE);
 
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
@@ -112,7 +98,7 @@ module.exports.getStandups = async (event, context) => {
       documentClient,
       DYNAMODB_TABLE_NAME,
       DYNAMODB_INVERTED_INDEX_NAME,
-      userId,
+      authorizer.userId,
       limit,
       exclusiveStartKey
     );
