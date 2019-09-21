@@ -13,7 +13,7 @@ describe('decode(cursor)', () => {
     const cursor = Buffer.from(jsonStr).toString('base64');
     expect(() => {
       pageCursor.decode(cursor);
-    }).toThrow('Invalid cursor');
+    }).toThrow('Malformed cursor');
   });
 
   it('throws when decoded cursor misses pk', () => {

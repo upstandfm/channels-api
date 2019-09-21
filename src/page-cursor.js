@@ -19,12 +19,10 @@ module.exports = {
       const jsonStr = Buffer.from(cursor, 'base64').toString('ascii');
       key = JSON.parse(jsonStr);
     } catch (err) {
-      console.log('cursor key has invalid JSON');
-      throw new Error('Invalid cursor');
+      throw new Error('Malformed cursor');
     }
 
     if (!key.pk || !key.sk) {
-      console.log('cursor key has missing pk and/or sk: ', key);
       throw new Error('Invalid cursor');
     }
 
