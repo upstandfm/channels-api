@@ -3,7 +3,7 @@
 /**
  * Handle errors by:
  *  - Capturing errors and sending them to Serverless Dashboard.
- *  - Sending a JSON response to the client with error information
+ *  - Sending a JSON response to the client with error information.
  *
  * Captured errors can be found here:
  * https://dashboard.serverless.com/tenants/upstandfm/applications/api/services/standups-api/stage/prod/region/eu-central-1#service-overview=alerts
@@ -14,9 +14,9 @@
  *
  * @return {Object} HTTP res
  */
-module.exports = function handleError(context, err, sendRes) {
+module.exports = function handleAndSendError(context, err, sendRes) {
+  // Provided by Serverless Framework
   if (context && context.captureError) {
-    // Provided by Serverless Framework
     context.captureError(err);
   }
 

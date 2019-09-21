@@ -7,7 +7,7 @@ const schema = require('./schema');
 const standups = require('./standups');
 const pageCursor = require('./page-cursor');
 const validateScope = require('./validate-scope');
-const handleError = require('./handle-error');
+const handleAndSendError = require('./handle-error');
 
 const {
   CORS_ALLOW_ORIGIN,
@@ -62,7 +62,7 @@ module.exports.createStandup = async (event, context) => {
     );
     return sendRes.json(201, createdItem);
   } catch (err) {
-    handleError(context, err, sendRes);
+    return handleAndSendError(context, err, sendRes);
   }
 };
 
@@ -111,6 +111,6 @@ module.exports.getStandups = async (event, context) => {
     };
     return sendRes.json(200, resData);
   } catch (err) {
-    handleError(context, err, sendRes);
+    return handleAndSendError(context, err, sendRes);
   }
 };

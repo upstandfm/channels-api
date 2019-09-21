@@ -1,8 +1,8 @@
 'use strict';
 
-const handleError = require('./handle-error');
+const handleAndSendError = require('./handle-error');
 
-describe('handleError(context, err, sendRes)', () => {
+describe('handleAndSendError(context, err, sendRes)', () => {
   it('calls "context.captureError" and "sendRes.json"', () => {
     const context = {
       captureError: jest.fn()
@@ -11,7 +11,7 @@ describe('handleError(context, err, sendRes)', () => {
     const sendRes = {
       json: jest.fn()
     };
-    handleError(context, err, sendRes);
+    handleAndSendError(context, err, sendRes);
     expect(context.captureError).toHaveBeenCalledTimes(1);
     expect(sendRes.json).toHaveBeenCalledTimes(1);
   });
@@ -26,7 +26,7 @@ describe('handleError(context, err, sendRes)', () => {
     const sendRes = {
       json: jest.fn()
     };
-    handleError(context, err, sendRes);
+    handleAndSendError(context, err, sendRes);
     expect(sendRes.json).toHaveBeenCalledWith(err.statusCode, {
       message: err.message,
       details: err.details

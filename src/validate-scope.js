@@ -15,9 +15,9 @@ const checkSymbols = require('@mooncake-dev/check-symbols');
 module.exports = function validateScope(scope, requiredScope) {
   const isAuthorized = checkSymbols(scope, requiredScope);
   if (!isAuthorized) {
-    const error = new Error('Forbidden');
-    error.statusCode = 403;
-    error.details = `you need scope "${requiredScope}"`;
-    throw error;
+    const err = new Error('Forbidden');
+    err.statusCode = 403;
+    err.details = `you need scope "${requiredScope}"`;
+    throw err;
   }
 };
