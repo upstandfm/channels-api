@@ -30,7 +30,7 @@ module.exports = {
     const now = Date.now();
     const insertData = {
       ...standupData,
-      id,
+      standupId: id,
       createdAt: now,
       updatedAt: now
     };

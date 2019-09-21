@@ -9,7 +9,7 @@ const defaultJoi = Joi.defaults(_schema =>
 );
 
 const _standupSchema = defaultJoi.object().keys({
-  name: Joi.string().required()
+  standupName: Joi.string().required()
 });
 
 function _validate(data, schema) {
