@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 
 const defaultJoi = Joi.defaults(_schema =>
   _schema.options({
@@ -9,11 +9,16 @@ const defaultJoi = Joi.defaults(_schema =>
 );
 
 const _standupSchema = defaultJoi.object().keys({
-  standupName: Joi.string().required()
+  standupName: Joi.string()
+    .required()
+    .max(70)
 });
 
 function _validate(data, schema) {
-  const { error, value } = Joi.validate(data, schema);
+  const { error, value } = schema.validate(data);
+
+  // For Joi "error" see:
+  // https://github.com/hapijs/joi/blob/master/API.md#validationerror
   if (error) {
     const err = new Error('Invalid request data');
     err.statusCode = 400;
