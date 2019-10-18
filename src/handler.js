@@ -197,6 +197,20 @@ module.exports.getStandupUpdates = async (event, context) => {
       dateKey = today;
     }
 
+    const userIsMember = await standups.userIsMember(
+      documentClient,
+      DYNAMODB_TABLE_NAME,
+      standupId,
+      authorizer.userId
+    );
+
+    if (!userIsMember) {
+      const err = new Error('Not Found');
+      err.statusCode = 404;
+      err.details = 'You might not be a member of this standup.';
+      throw err;
+    }
+
     const updatesData = await standupUpdates.getForDate(
       documentClient,
       DYNAMODB_TABLE_NAME,
