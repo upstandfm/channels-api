@@ -48,6 +48,7 @@ provider:
     CREATE_STANDUP_SCOPE: 'create:standup'
     READ_STANDUPS_SCOPE: 'read:standups'
     READ_STANDUP_SCOPE: 'read:standup'
+    READ_UPDATES_SCOPE: 'read:updates'
 
   # See: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_actions-resources-contextkeys.html
   iamRoleStatements:
@@ -55,6 +56,7 @@ provider:
       Action:
         - dynamodb:PutItem
         - dynamodb:GetItem
+        - dynamodb:Query
       Resource: ${state:infra.standupsTableArn}
     - Effect: Allow
       Action:
@@ -115,6 +117,21 @@ functions:
             parameters:
               paths:
                 standupId: true
+          cors: ${self:custom.cors}
+          authorizer: ${self:custom.authorizer}
+  getStandupUpdates:
+    handler: src/handler.getStandupUpdates
+    description: Gets all standup updates for a date
+    events:
+      - http:
+          method: get
+          path: /{standupId}/updates
+          request:
+            parameters:
+              paths:
+                standupId: true
+              queryStrings:
+                date: false # optional query param
           cors: ${self:custom.cors}
           authorizer: ${self:custom.authorizer}
 

@@ -5,8 +5,10 @@ const bodyParser = require('@mooncake-dev/lambda-body-parser');
 const createResHandler = require('@mooncake-dev/lambda-res-handler');
 const schema = require('./schema');
 const standups = require('./standups');
+const standupUpdates = require('./standup-updates');
 const pageCursor = require('./page-cursor');
 const validateScope = require('./validate-scope');
+const validateDate = require('./validate-date');
 const handleAndSendError = require('./handle-error');
 
 const {
@@ -16,7 +18,8 @@ const {
   DEFAULT_QUERY_LIMIT,
   CREATE_STANDUP_SCOPE,
   READ_STANDUPS_SCOPE,
-  READ_STANDUP_SCOPE
+  READ_STANDUP_SCOPE,
+  READ_UPDATES_SCOPE
 } = process.env;
 
 const defaultHeaders = {
@@ -147,6 +150,64 @@ module.exports.getStandup = async (event, context) => {
       authorizer.userId
     );
     return sendRes.json(200, userStandup);
+  } catch (err) {
+    return handleAndSendError(context, err, sendRes);
+  }
+};
+
+/**
+ * Lambda APIG proxy integration that gets all standup updates for a date.
+ *
+ * @param {Object} event - HTTP input
+ * @param {Object} context - AWS lambda context
+ *
+ * @return {Object} HTTP output
+ *
+ * For more info on HTTP input see:
+ * https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+ *
+ * For more info on AWS lambda context see:
+ * https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
+ *
+ * For more info on HTTP output see:
+ * https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
+ */
+module.exports.getStandupUpdates = async (event, context) => {
+  try {
+    const { authorizer } = event.requestContext;
+
+    validateScope(authorizer.scope, READ_UPDATES_SCOPE);
+
+    const { standupId } = event.pathParameters;
+
+    // "queryStringParameters" defaults to "null"
+    // So destructuring with a default value doesn't work (must be "undefined")
+    const q = event.queryStringParameters || {};
+    const { date } = q;
+
+    let dateKey;
+
+    if (date) {
+      validateDate(date);
+      dateKey = date;
+    } else {
+      const now = new Date();
+      const today = `${now.getDate()}-${now.getMonth() +
+        1}-${now.getFullYear()}`;
+      dateKey = today;
+    }
+
+    const updatesData = await standupUpdates.getForDate(
+      documentClient,
+      DYNAMODB_TABLE_NAME,
+      standupId,
+      dateKey
+    );
+
+    const resData = {
+      items: updatesData.Items
+    };
+    return sendRes.json(200, resData);
   } catch (err) {
     return handleAndSendError(context, err, sendRes);
   }
