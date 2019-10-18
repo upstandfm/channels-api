@@ -219,6 +219,7 @@ module.exports.getStandupUpdates = async (event, context) => {
     );
 
     const resData = {
+      date: dateKey,
       items: updatesData.Items
     };
     return sendRes.json(200, resData);
