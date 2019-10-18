@@ -178,8 +178,6 @@ module.exports.getStandupUpdates = async (event, context) => {
 
     validateScope(authorizer.scope, READ_UPDATES_SCOPE);
 
-    const { standupId } = event.pathParameters;
-
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
     const q = event.queryStringParameters || {};
@@ -197,14 +195,16 @@ module.exports.getStandupUpdates = async (event, context) => {
       dateKey = today;
     }
 
-    const userIsMember = await standups.userIsMember(
+    const { standupId } = event.pathParameters;
+
+    const userIsStandupMember = await standups.userIsMember(
       documentClient,
       DYNAMODB_TABLE_NAME,
       standupId,
       authorizer.userId
     );
 
-    if (!userIsMember) {
+    if (!userIsStandupMember) {
       const err = new Error('Not Found');
       err.statusCode = 404;
       err.details = 'You might not be a member of this standup.';

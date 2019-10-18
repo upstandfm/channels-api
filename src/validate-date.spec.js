@@ -41,6 +41,7 @@ describe('validateDate(date)', () => {
   it('does not throw with valid format', () => {
     try {
       validateDate('18-10-2019');
+      validateDate('1-1-2019');
     } catch (err) {
       expect(err).toBe(null);
     }
