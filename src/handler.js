@@ -204,7 +204,6 @@ module.exports.getStandupUpdates = async (event, context) => {
       standupId,
       authorizer.userId
     );
-
     if (!userIsStandupMember) {
       const err = new Error('Not Found');
       err.statusCode = 404;
@@ -260,7 +259,6 @@ module.exports.getStandupMembers = async (event, context) => {
       standupId,
       authorizer.userId
     );
-
     if (!userIsStandupMember) {
       const err = new Error('Not Found');
       err.statusCode = 404;
