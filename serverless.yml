@@ -49,6 +49,7 @@ provider:
     READ_STANDUPS_SCOPE: 'read:standups'
     READ_STANDUP_SCOPE: 'read:standup'
     READ_UPDATES_SCOPE: 'read:updates'
+    READ_MEMBERS_SCOPE: 'read:members'
 
   # See: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_actions-resources-contextkeys.html
   iamRoleStatements:
@@ -132,6 +133,19 @@ functions:
                 standupId: true
               queryStrings:
                 date: false # optional query param
+          cors: ${self:custom.cors}
+          authorizer: ${self:custom.authorizer}
+  getStandupMembers:
+    handler: src/handler.getStandupMembers
+    description: Gets all standup members
+    events:
+      - http:
+          method: get
+          path: /{standupId}/members
+          request:
+            parameters:
+              paths:
+                standupId: true
           cors: ${self:custom.cors}
           authorizer: ${self:custom.authorizer}
 
