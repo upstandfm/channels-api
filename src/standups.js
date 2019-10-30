@@ -222,7 +222,7 @@ module.exports = {
         ':sk_start': 'user#'
       },
       KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
-      ProjectionExpression: 'userId'
+      ProjectionExpression: 'userId, userFullName'
     };
     return client.query(params).promise();
   }
