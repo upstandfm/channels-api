@@ -31,22 +31,22 @@
     }
   },
   "devDependencies": {
-    "eslint": "^6.6.0",
-    "eslint-config-prettier": "^6.5.0",
-    "eslint-plugin-prettier": "^3.1.0",
-    "husky": "^3.0.9",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^3.1.0",
     "jest": "^24.9.0",
-    "jest-junit": "^9.0.0",
-    "lint-staged": "^9.4.2",
-    "prettier": "^1.18.2",
-    "serverless": "^1.55.1",
+    "jest-junit": "^10.0.0",
+    "lint-staged": "^9.5.0",
+    "prettier": "^1.19.1",
+    "serverless": "^1.60.4",
     "serverless-domain-manager": "^3.3.0"
   },
   "dependencies": {
-    "@hapi/joi": "^16.1.7",
-    "@mooncake-dev/check-symbols": "^1.0.2",
-    "@mooncake-dev/lambda-body-parser": "^1.0.3",
-    "@mooncake-dev/lambda-res-handler": "^1.1.2",
+    "@hapi/joi": "^16.1.8",
+    "@mooncake-dev/check-symbols": "^1.0.3",
+    "@mooncake-dev/lambda-body-parser": "^1.0.4",
+    "@mooncake-dev/lambda-res-handler": "^1.1.3",
     "shortid": "^2.2.15"
   }
 }
