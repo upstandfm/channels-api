@@ -18,7 +18,8 @@ module.exports = {
     const params = {
       TableName: tableName,
       ExpressionAttributeNames: {
-        '#s': 'status'
+        '#s': 'status',
+        '#n': 'name'
       },
       ExpressionAttributeValues: {
         ':pk': `standup#${standupId}`,
@@ -26,7 +27,7 @@ module.exports = {
       },
       KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
       ProjectionExpression:
-        'recordingId, standupId, userId, name, #s, transcodedFileKey, createdAt, updatedAt'
+        'recordingId, standupId, userId, #n, #s, transcodedFileKey, createdAt, updatedAt'
     };
 
     return client.query(params).promise();
