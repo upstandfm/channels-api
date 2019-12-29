@@ -23,7 +23,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${opt:stage, 'prod'}
   region: ${opt:region, 'eu-central-1'}
   cfnRole: ${secrets:CFN_ROLE_ARN}
@@ -31,7 +31,7 @@ provider:
   timeout: 3
   deploymentBucket:
     name: upstandfm-deployments
-    serverSideEncryption: AES256 # when using server-side encryption
+    serverSideEncryption: AES256
   environment:
     # Reuse TCP connection to reduce request latency
     # For more info see:
