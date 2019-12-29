@@ -26,7 +26,7 @@ module.exports = {
       },
       KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
       ProjectionExpression:
-        'recordingId, standupId, userId, filename, #s, transcodedFileKey, createdAt, updatedAt'
+        'recordingId, standupId, userId, name, #s, transcodedFileKey, createdAt, updatedAt'
     };
 
     return client.query(params).promise();
