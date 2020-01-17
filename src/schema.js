@@ -9,7 +9,7 @@ const defaultJoi = Joi.defaults(_schema =>
 );
 
 const _standupSchema = defaultJoi.object().keys({
-  standupName: Joi.string()
+  name: Joi.string()
     .required()
     .max(70)
 });

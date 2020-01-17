@@ -13,6 +13,7 @@ const handleAndSendError = require('./handle-error');
 
 const {
   CORS_ALLOW_ORIGIN,
+  WORKSPACES_TABLE_NAME,
   DYNAMODB_TABLE_NAME,
   DYNAMODB_INVERTED_INDEX_NAME,
   DEFAULT_QUERY_LIMIT,
@@ -57,13 +58,30 @@ module.exports.createStandup = async (event, context) => {
 
     validateScope(authorizer.scope, CREATE_STANDUP_SCOPE);
 
+    const { workspaceId, userId } = authorizer;
+
+    if (!workspaceId) {
+      const err = new Error('Missing Workspace ID');
+      err.statusCode = 500;
+      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
+      throw err;
+    }
+
+    if (!userId) {
+      const err = new Error('Missing User ID');
+      err.statusCode = 500;
+      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
+      throw err;
+    }
+
     const body = bodyParser.json(event.body);
     const standupData = schema.validateStandup(body);
     const createdItem = await standups.create(
       documentClient,
-      DYNAMODB_TABLE_NAME,
+      WORKSPACES_TABLE_NAME,
       standupData,
-      authorizer.userId
+      workspaceId,
+      userId
     );
     return sendRes.json(201, createdItem);
   } catch (err) {
