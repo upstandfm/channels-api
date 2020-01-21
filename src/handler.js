@@ -223,11 +223,21 @@ module.exports.getStandupUpdates = async (event, context) => {
 
     validateScope(authorizer.scope, READ_UPDATES_SCOPE);
 
+    const { workspaceId } = authorizer;
+
+    if (!workspaceId) {
+      const err = new Error('Missing Workspace ID');
+      err.statusCode = 500;
+      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
+      throw err;
+    }
+
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
     const q = event.queryStringParameters || {};
     const { date } = q;
 
+    // TODO: remove "defaulting" behavior and make date required
     let dateKey;
 
     if (date) {
@@ -241,23 +251,10 @@ module.exports.getStandupUpdates = async (event, context) => {
     }
 
     const { standupId } = event.pathParameters;
-
-    const userIsStandupMember = await standups.userIsMember(
+    const updatesData = await standupUpdates.getAllForDate(
       documentClient,
-      DYNAMODB_TABLE_NAME,
-      standupId,
-      authorizer.userId
-    );
-    if (!userIsStandupMember) {
-      const err = new Error('Not Found');
-      err.statusCode = 404;
-      err.details = 'You might not be a member of this standup';
-      throw err;
-    }
-
-    const updatesData = await standupUpdates.getForDate(
-      documentClient,
-      DYNAMODB_TABLE_NAME,
+      WORKSPACES_TABLE_NAME,
+      workspaceId,
       standupId,
       dateKey
     );

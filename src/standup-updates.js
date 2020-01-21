@@ -2,11 +2,12 @@
 
 module.exports = {
   /**
-   * Get standup updates for a date.
+   * Get all standup updates for a date.
    *
    * @param {Object} client - DynamoDB document client
-   * @param {String} tableName - DynamoDB table name
-   * @param {Object} standupId
+   * @param {String} tableName
+   * @param {String} workspaceId
+   * @param {String} standupId
    * @param {String} dateKey - Date with format "(D)D-(M)M-YYYY"
    *
    * @return {Promise} Resolves with DynamoDB data
@@ -14,20 +15,21 @@ module.exports = {
    * For SDK documentation see:
    * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property
    */
-  getForDate(client, tableName, standupId, dateKey) {
+  getAllForDate(client, tableName, workspaceId, standupId, dateKey) {
     const params = {
       TableName: tableName,
+      // For reserved keywords see:
+      // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
       ExpressionAttributeNames: {
-        '#s': 'status',
         '#n': 'name'
       },
       ExpressionAttributeValues: {
-        ':pk': `standup#${standupId}`,
+        ':pk': `workspace#${workspaceId}#standup#${standupId}`,
         ':sk_start': `update#${dateKey}#user`
       },
       KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
       ProjectionExpression:
-        'recordingId, standupId, userId, #n, #s, transcodedFileKey, createdAt, updatedAt'
+        'id, createdBy, createdAt, updatedAt, #n, transcodingStatus, transcodedFileKey'
     };
 
     return client.query(params).promise();
