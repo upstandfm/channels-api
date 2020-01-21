@@ -4,10 +4,10 @@ const shortid = require('shortid');
 
 module.exports = {
   /**
-   * Create a standup.
+   * Create a standup in a workspace.
    *
    * @param {Object} client - DynamoDB document client
-   * @param {String} tableName - DynamoDB table name
+   * @param {String} tableName
    * @param {Object} standupData
    * @param {String} workspaceId
    * @param {String} userId
@@ -48,12 +48,11 @@ module.exports = {
   },
 
   /**
-   * Get all standups for a user.
+   * Get all standups in a workspace.
    *
    * @param {Object} client - DynamoDB document client
-   * @param {String} tableName - DynamoDB table name
-   * @param {String} indexName - DynamoDB index name
-   * @param {String} userId
+   * @param {String} tableName
+   * @param {String} workspaceId
    * @param {Number} limit - How many items to get
    * @param {Object} exclusiveStartKey - DynamoDB primary key
    *
@@ -62,23 +61,21 @@ module.exports = {
    * For SDK documentation see:
    * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property
    */
-  getAllForUser(
-    client,
-    tableName,
-    indexName,
-    userId,
-    limit,
-    exclusiveStartKey
-  ) {
+  getAll(client, tableName, workspaceId, limit, exclusiveStartKey) {
     const params = {
       TableName: tableName,
-      IndexName: indexName,
-      ExpressionAttributeValues: {
-        ':sk': `user#${userId}`, // this is now the partition key
-        ':pk_start': 'standup#' // this is now the sort key
+      // For reserved keywords see:
+      // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+      ExpressionAttributeNames: {
+        '#n': 'name'
       },
-      KeyConditionExpression: 'sk = :sk and begins_with(pk, :pk_start)',
-      ProjectionExpression: 'standupId, standupName',
+      ExpressionAttributeValues: {
+        ':pk': `workspace#${workspaceId}`,
+        ':sk_start': 'standup#'
+      },
+      KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
+      ProjectionExpression:
+        'id, createdBy, createdAt, updatedAt, #n, isPrivate',
       Limit: limit,
       ExclusiveStartKey: exclusiveStartKey
     };
@@ -86,63 +83,33 @@ module.exports = {
   },
 
   /**
-   * Get a single standup for a user.
-   *
-   * This operation uses a transaction to also check if the user is associated
-   * with the standup.
-   *
-   * For more info on DynamoDB transactions see:
-   * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html
+   * Get a single standup in a workspace.
    *
    * For SDK documentation see:
-   * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#transactGet-property
+   * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#get-property
    *
    * @param {Object} client - DynamoDB document client
-   * @param {String} tableName - DynamoDB table name
+   * @param {String} tableName
+   * @param {String} workspaceId
    * @param {String} standupId
-   * @param {String} userId
    *
    * @return {Promise} Resolves with DynamoDB data
    */
-  getForUser(client, tableName, standupId, userId) {
+  getOne(client, tableName, workspaceId, standupId) {
     const params = {
-      TransactItems: [
-        {
-          Get: {
-            TableName: tableName,
-            Key: {
-              pk: `standup#${standupId}`,
-              sk: `user#${userId}`
-            }
-          }
-        },
-        {
-          Get: {
-            TableName: tableName,
-            Key: {
-              pk: `standup#${standupId}`,
-              sk: `standup#${standupId}`
-            },
-            ProjectionExpression: 'standupId, standupName, createdAt, updatedAt'
-          }
-        }
-      ]
+      TableName: tableName,
+      // For reserved keywords see:
+      // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+      ExpressionAttributeNames: {
+        '#n': 'name'
+      },
+      Key: {
+        pk: `workspace#${workspaceId}`,
+        sk: `standup#${standupId}`
+      },
+      ProjectionExpression: 'id, createdBy, createdAt, updatedAt, #n, isPrivate'
     };
-    return client
-      .transactGet(params)
-      .promise()
-      .then(data => {
-        const [userItem, standupItem] = data.Responses;
-
-        if (!userItem.Item) {
-          const err = new Error('Not Found');
-          err.statusCode = 404;
-          err.details = 'You might not be a member of this standup.';
-          throw err;
-        }
-
-        return standupItem.Item;
-      });
+    return client.get(params).promise();
   },
 
   /**

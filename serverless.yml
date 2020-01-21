@@ -48,7 +48,6 @@ provider:
     DYNAMODB_TABLE_NAME:
       'Fn::Select':
         ['1', { 'Fn::Split': ['/', '${state:infra.standupsTableArn}'] }]
-    DYNAMODB_INVERTED_INDEX_NAME: ${state:infra.standupsInvertedIndex}
     DEFAULT_QUERY_LIMIT: 10
     CREATE_STANDUP_SCOPE: 'create:standup'
     READ_STANDUPS_SCOPE: 'read:standups'
@@ -70,26 +69,11 @@ provider:
         - dynamodb:GetItem
         - dynamodb:Query
       Resource: ${state:infra.standupsTableArn}
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-      # The ARN has the format "arn:aws:dynamodb:::table/tableName/index/indexName"
-      # Joining on "/" gives us the ARN of the index
-      Resource:
-        'Fn::Join':
-          [
-            '/',
-            [
-              '${state:infra.standupsTableArn}',
-              'index',
-              '${state:infra.standupsInvertedIndex}',
-            ],
-          ]
 
 package:
   exclude:
     - ./*
-    - ./**/*.test.js
+    - ./**/*.spec.js
   include:
     - node_modules
     - src
@@ -97,7 +81,7 @@ package:
 functions:
   createStandup:
     handler: src/handler.createStandup
-    description: Creates a standup
+    description: Creates a standup in the user's workspace
     events:
       - http:
           method: post
@@ -106,7 +90,7 @@ functions:
           authorizer: ${self:custom.authorizer}
   getStandups:
     handler: src/handler.getStandups
-    description: Gets all standups for a user
+    description: Gets all standups in the user's workspace
     events:
       - http:
           method: get
@@ -120,7 +104,7 @@ functions:
           authorizer: ${self:custom.authorizer}
   getStandup:
     handler: src/handler.getStandup
-    description: Gets a single standup for a user
+    description: Gets a single standup in the user's workspace
     events:
       - http:
           method: get
