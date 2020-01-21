@@ -1,6 +1,6 @@
 'use strict';
 
-const validateDate = require('./validate-date');
+const validateDate = require('./date');
 
 const errMsg = 'Invalid Date Format';
 const errDetails =

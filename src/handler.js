@@ -7,10 +7,13 @@ const schema = require('./schema');
 const standups = require('./standups');
 const updates = require('./updates');
 const pageCursor = require('./page-cursor');
-const validateAuthorizerData = require('./validate-authorizer-data');
-const validateScope = require('./validate-scope');
-const validateDate = require('./validate-date');
 const handleAndSendError = require('./handle-error');
+
+const {
+  validateAuthorizerData,
+  validateScope,
+  validateDate
+} = require('./validators');
 
 const {
   CORS_ALLOW_ORIGIN,
