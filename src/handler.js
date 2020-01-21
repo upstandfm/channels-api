@@ -7,6 +7,7 @@ const schema = require('./schema');
 const standups = require('./standups');
 const updates = require('./updates');
 const pageCursor = require('./page-cursor');
+const validateAuthorizerData = require('./validate-authorizer-data');
 const validateScope = require('./validate-scope');
 const validateDate = require('./validate-date');
 const handleAndSendError = require('./handle-error');
@@ -55,23 +56,8 @@ module.exports.createStandup = async (event, context) => {
   try {
     const { authorizer } = event.requestContext;
 
+    validateAuthorizerData(authorizer);
     validateScope(authorizer.scope, CREATE_STANDUP_SCOPE);
-
-    const { workspaceId, userId } = authorizer;
-
-    if (!workspaceId) {
-      const err = new Error('Missing Workspace ID');
-      err.statusCode = 500;
-      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
-      throw err;
-    }
-
-    if (!userId) {
-      const err = new Error('Missing User ID');
-      err.statusCode = 500;
-      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
-      throw err;
-    }
 
     const body = bodyParser.json(event.body);
     const standupData = schema.validateStandup(body);
@@ -79,8 +65,8 @@ module.exports.createStandup = async (event, context) => {
       documentClient,
       WORKSPACES_TABLE_NAME,
       standupData,
-      workspaceId,
-      userId
+      authorizer.workspaceId,
+      authorizer.userId
     );
     return sendRes.json(201, createdItem);
   } catch (err) {
@@ -109,16 +95,8 @@ module.exports.getStandups = async (event, context) => {
   try {
     const { authorizer } = event.requestContext;
 
+    validateAuthorizerData(authorizer);
     validateScope(authorizer.scope, READ_STANDUPS_SCOPE);
-
-    const { workspaceId } = authorizer;
-
-    if (!workspaceId) {
-      const err = new Error('Missing Workspace ID');
-      err.statusCode = 500;
-      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
-      throw err;
-    }
 
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
@@ -128,7 +106,7 @@ module.exports.getStandups = async (event, context) => {
     const workspaceStandups = await standups.getAll(
       documentClient,
       WORKSPACES_TABLE_NAME,
-      workspaceId,
+      authorizer.workspaceId,
       limit,
       exclusiveStartKey
     );
@@ -167,30 +145,21 @@ module.exports.getStandup = async (event, context) => {
   try {
     const { authorizer } = event.requestContext;
 
+    validateAuthorizerData(authorizer);
     validateScope(authorizer.scope, READ_STANDUP_SCOPE);
-
-    const { workspaceId } = authorizer;
-
-    if (!workspaceId) {
-      const err = new Error('Missing Workspace ID');
-      err.statusCode = 500;
-      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
-      throw err;
-    }
 
     const { standupId } = event.pathParameters;
     const workspaceStandup = await standups.getOne(
       documentClient,
       WORKSPACES_TABLE_NAME,
-      workspaceId,
+      authorizer.workspaceId,
       standupId
     );
 
     if (!workspaceStandup.Item) {
       const err = new Error('Not Found');
       err.statusCode = 404;
-      err.details =
-        "You might not have access to this standup, or it doesn't exist.";
+      err.details = `You might not have access to this standup, or it doesn't exist.`;
       throw err;
     }
 
@@ -221,16 +190,8 @@ module.exports.getStandupUpdates = async (event, context) => {
   try {
     const { authorizer } = event.requestContext;
 
+    validateAuthorizerData(authorizer);
     validateScope(authorizer.scope, READ_UPDATES_SCOPE);
-
-    const { workspaceId } = authorizer;
-
-    if (!workspaceId) {
-      const err = new Error('Missing Workspace ID');
-      err.statusCode = 500;
-      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
-      throw err;
-    }
 
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
@@ -243,7 +204,7 @@ module.exports.getStandupUpdates = async (event, context) => {
     const updatesData = await updates.getAllForDate(
       documentClient,
       WORKSPACES_TABLE_NAME,
-      workspaceId,
+      authorizer.workspaceId,
       standupId,
       date
     );
