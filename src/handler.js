@@ -5,7 +5,7 @@ const bodyParser = require('@mooncake-dev/lambda-body-parser');
 const createResHandler = require('@mooncake-dev/lambda-res-handler');
 const schema = require('./schema');
 const standups = require('./standups');
-const standupUpdates = require('./standup-updates');
+const updates = require('./updates');
 const pageCursor = require('./page-cursor');
 const validateScope = require('./validate-scope');
 const validateDate = require('./validate-date');
@@ -251,7 +251,7 @@ module.exports.getStandupUpdates = async (event, context) => {
     }
 
     const { standupId } = event.pathParameters;
-    const updatesData = await standupUpdates.getAllForDate(
+    const updatesData = await updates.getAllForDate(
       documentClient,
       WORKSPACES_TABLE_NAME,
       workspaceId,
