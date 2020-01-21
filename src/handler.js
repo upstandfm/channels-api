@@ -237,18 +237,7 @@ module.exports.getStandupUpdates = async (event, context) => {
     const q = event.queryStringParameters || {};
     const { date } = q;
 
-    // TODO: remove "defaulting" behavior and make date required
-    let dateKey;
-
-    if (date) {
-      validateDate(date);
-      dateKey = date;
-    } else {
-      const now = new Date();
-      const today = `${now.getDate()}-${now.getMonth() +
-        1}-${now.getFullYear()}`;
-      dateKey = today;
-    }
+    validateDate(date);
 
     const { standupId } = event.pathParameters;
     const updatesData = await updates.getAllForDate(
@@ -256,11 +245,11 @@ module.exports.getStandupUpdates = async (event, context) => {
       WORKSPACES_TABLE_NAME,
       workspaceId,
       standupId,
-      dateKey
+      date
     );
 
     const resData = {
-      date: dateKey,
+      date,
       items: updatesData.Items
     };
     return sendRes.json(200, resData);

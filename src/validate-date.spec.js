@@ -2,9 +2,9 @@
 
 const validateDate = require('./validate-date');
 
-const errMsg = 'Invalid date format';
+const errMsg = 'Invalid Date Format';
 const errDetails =
-  'The "date" must have format "(D)D-(M)M-YYYY", for example "18-10-2019" or "1-1-2020"';
+  'The valid date format is "YYYY-MM-DD", for example "18-10-2019" or "01-01-2020"';
 const errStatusCode = 400;
 
 describe('validateDate(date)', () => {
@@ -30,7 +30,7 @@ describe('validateDate(date)', () => {
 
   it('throws with invalid format', () => {
     try {
-      validateDate('2019-10-18');
+      validateDate('12-01-2019');
     } catch (err) {
       expect(err).toHaveProperty('message', errMsg);
       expect(err).toHaveProperty('details', errDetails);
@@ -40,8 +40,7 @@ describe('validateDate(date)', () => {
 
   it('does not throw with valid format', () => {
     try {
-      validateDate('18-10-2019');
-      validateDate('1-1-2019');
+      validateDate('2020-01-21');
     } catch (err) {
       expect(err).toBe(null);
     }

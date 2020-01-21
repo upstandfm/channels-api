@@ -8,14 +8,14 @@ module.exports = {
    * @param {String} tableName
    * @param {String} workspaceId
    * @param {String} standupId
-   * @param {String} dateKey - Date with format "(D)D-(M)M-YYYY"
+   * @param {String} date - Date with format "YYYY-MM-DD"
    *
    * @return {Promise} Resolves with DynamoDB data
    *
    * For SDK documentation see:
    * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property
    */
-  getAllForDate(client, tableName, workspaceId, standupId, dateKey) {
+  getAllForDate(client, tableName, workspaceId, standupId, date) {
     const params = {
       TableName: tableName,
       // For reserved keywords see:
@@ -25,7 +25,7 @@ module.exports = {
       },
       ExpressionAttributeValues: {
         ':pk': `workspace#${workspaceId}#standup#${standupId}`,
-        ':sk_start': `update#${dateKey}#user`
+        ':sk_start': `update#${date}#user`
       },
       KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
       ProjectionExpression:
