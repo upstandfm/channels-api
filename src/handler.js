@@ -15,7 +15,6 @@ const {
   CORS_ALLOW_ORIGIN,
   WORKSPACES_TABLE_NAME,
   DYNAMODB_TABLE_NAME,
-  DYNAMODB_INVERTED_INDEX_NAME,
   DEFAULT_QUERY_LIMIT,
   CREATE_STANDUP_SCOPE,
   READ_STANDUPS_SCOPE,
@@ -36,7 +35,7 @@ const documentClient = new DynamoDB.DocumentClient({
 });
 
 /**
- * Lambda APIG proxy integration that creates a standup.
+ * Lambda APIG proxy integration that creates a standup in the user's workspace.
  *
  * @param {Object} event - HTTP input
  * @param {Object} context - AWS lambda context
@@ -90,7 +89,7 @@ module.exports.createStandup = async (event, context) => {
 };
 
 /**
- * Lambda APIG proxy integration that gets all standups for a user.
+ * Lambda APIG proxy integration that gets all standups in the user's workspace.
  *
  * @param {Object} event - HTTP input
  * @param {Object} context - AWS lambda context
@@ -112,24 +111,32 @@ module.exports.getStandups = async (event, context) => {
 
     validateScope(authorizer.scope, READ_STANDUPS_SCOPE);
 
+    const { workspaceId } = authorizer;
+
+    if (!workspaceId) {
+      const err = new Error('Missing Workspace ID');
+      err.statusCode = 500;
+      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
+      throw err;
+    }
+
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
     const q = event.queryStringParameters || {};
     const { limit = DEFAULT_QUERY_LIMIT, cursor } = q;
     const exclusiveStartKey = pageCursor.decode(cursor);
-    const userStandups = await standups.getAllForUser(
+    const workspaceStandups = await standups.getAll(
       documentClient,
-      DYNAMODB_TABLE_NAME,
-      DYNAMODB_INVERTED_INDEX_NAME,
-      authorizer.userId,
+      WORKSPACES_TABLE_NAME,
+      workspaceId,
       limit,
       exclusiveStartKey
     );
 
     const resData = {
-      items: userStandups.Items,
+      items: workspaceStandups.Items,
       cursor: {
-        next: pageCursor.encode(userStandups.LastEvaluatedKey)
+        next: pageCursor.encode(workspaceStandups.LastEvaluatedKey)
       }
     };
     return sendRes.json(200, resData);
@@ -139,7 +146,8 @@ module.exports.getStandups = async (event, context) => {
 };
 
 /**
- * Lambda APIG proxy integration that gets a single standups for a user.
+ * Lambda APIG proxy integration that gets a single standup in the user's
+ * workspace.
  *
  * @param {Object} event - HTTP input
  * @param {Object} context - AWS lambda context
@@ -161,14 +169,32 @@ module.exports.getStandup = async (event, context) => {
 
     validateScope(authorizer.scope, READ_STANDUP_SCOPE);
 
+    const { workspaceId } = authorizer;
+
+    if (!workspaceId) {
+      const err = new Error('Missing Workspace ID');
+      err.statusCode = 500;
+      err.details = `Corrupt authorizer data. Contact "support@upstand.fm"`;
+      throw err;
+    }
+
     const { standupId } = event.pathParameters;
-    const userStandup = await standups.getForUser(
+    const workspaceStandup = await standups.getOne(
       documentClient,
-      DYNAMODB_TABLE_NAME,
-      standupId,
-      authorizer.userId
+      WORKSPACES_TABLE_NAME,
+      workspaceId,
+      standupId
     );
-    return sendRes.json(200, userStandup);
+
+    if (!workspaceStandup.Item) {
+      const err = new Error('Not Found');
+      err.statusCode = 404;
+      err.details =
+        "You might not have access to this standup, or it doesn't exist.";
+      throw err;
+    }
+
+    return sendRes.json(200, workspaceStandup.Item);
   } catch (err) {
     return handleAndSendError(context, err, sendRes);
   }
