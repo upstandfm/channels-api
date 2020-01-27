@@ -18,13 +18,11 @@ const {
 const {
   CORS_ALLOW_ORIGIN,
   WORKSPACES_TABLE_NAME,
-  DYNAMODB_TABLE_NAME,
   DEFAULT_QUERY_LIMIT,
   CREATE_STANDUP_SCOPE,
   READ_STANDUPS_SCOPE,
   READ_STANDUP_SCOPE,
-  READ_UPDATES_SCOPE,
-  READ_MEMBERS_SCOPE
+  READ_UPDATES_SCOPE
 } = process.env;
 
 const defaultHeaders = {
@@ -215,59 +213,6 @@ module.exports.getStandupUpdates = async (event, context) => {
     const resData = {
       date,
       items: updatesData.Items
-    };
-    return sendRes.json(200, resData);
-  } catch (err) {
-    return handleAndSendError(context, err, sendRes);
-  }
-};
-
-/**
- * Lambda APIG proxy integration that gets all standup members.
- *
- * @param {Object} event - HTTP input
- * @param {Object} context - AWS lambda context
- *
- * @return {Object} HTTP output
- *
- * For more info on HTTP input see:
- * https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
- *
- * For more info on AWS lambda context see:
- * https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
- *
- * For more info on HTTP output see:
- * https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
- */
-module.exports.getStandupMembers = async (event, context) => {
-  try {
-    const { authorizer } = event.requestContext;
-
-    validateScope(authorizer.scope, READ_MEMBERS_SCOPE);
-
-    const { standupId } = event.pathParameters;
-
-    const userIsStandupMember = await standups.userIsMember(
-      documentClient,
-      DYNAMODB_TABLE_NAME,
-      standupId,
-      authorizer.userId
-    );
-    if (!userIsStandupMember) {
-      const err = new Error('Not Found');
-      err.statusCode = 404;
-      err.details = 'You might not be a member of this standup';
-      throw err;
-    }
-
-    const membersData = await standups.getMembers(
-      documentClient,
-      DYNAMODB_TABLE_NAME,
-      standupId
-    );
-
-    const resData = {
-      items: membersData.Items
     };
     return sendRes.json(200, resData);
   } catch (err) {

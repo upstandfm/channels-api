@@ -110,32 +110,5 @@ module.exports = {
       ProjectionExpression: 'id, createdBy, createdAt, updatedAt, #n, isPrivate'
     };
     return client.get(params).promise();
-  },
-
-  /**
-   * Get all standup members.
-   *
-   * Returns a list of user IDs.
-   *
-   * @param {Object} client - DynamoDB document client
-   * @param {String} tableName - DynamoDB table name
-   * @param {String} standupId
-   *
-   * @return {Promise} Resolves with DynamoDB data
-   *
-   * For SDK documentation see:
-   * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property
-   */
-  getMembers(client, tableName, standupId) {
-    const params = {
-      TableName: tableName,
-      ExpressionAttributeValues: {
-        ':pk': `standup#${standupId}`,
-        ':sk_start': 'user#'
-      },
-      KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
-      ProjectionExpression: 'userId, userFullName'
-    };
-    return client.query(params).promise();
   }
 };
