@@ -4,7 +4,7 @@ const validateDate = require('./date');
 
 const errMsg = 'Invalid Date Format';
 const errDetails =
-  'The valid date format is "YYYY-MM-DD", for example "18-10-2019" or "01-01-2020"';
+  'The valid date format is "YYYY-MM-DD", for example "2020-01-28"';
 const errStatusCode = 400;
 
 describe('validateDate(date)', () => {
