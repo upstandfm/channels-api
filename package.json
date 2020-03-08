@@ -44,6 +44,7 @@
     "@mooncake-dev/check-symbols": "^1.0.3",
     "@mooncake-dev/lambda-body-parser": "^1.0.4",
     "@mooncake-dev/lambda-res-handler": "^1.1.3",
+    "aws-sdk": "^2.635.0",
     "shortid": "^2.2.15"
   }
 }
