@@ -8,17 +8,13 @@ const standups = require('./standups');
 const updates = require('./updates');
 const pageCursor = require('./page-cursor');
 const handleAndSendError = require('./handle-error');
-
-const {
-  validateAuthorizerData,
-  validateScope,
-  validateDate
-} = require('./validators');
+const { validateAuthorizerData, validateScope } = require('./validators');
 
 const {
   CORS_ALLOW_ORIGIN,
   WORKSPACES_TABLE_NAME,
-  DEFAULT_QUERY_LIMIT,
+  DEFAULT_STANDUPS_LIMIT,
+  DEFAULT_UPDATES_LIMIT,
   CREATE_STANDUP_SCOPE,
   READ_STANDUPS_SCOPE,
   READ_STANDUP_SCOPE,
@@ -102,7 +98,7 @@ module.exports.getStandups = async (event, context) => {
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
     const q = event.queryStringParameters || {};
-    const { limit = DEFAULT_QUERY_LIMIT, cursor } = q;
+    const { limit = DEFAULT_STANDUPS_LIMIT, cursor } = q;
     const exclusiveStartKey = pageCursor.decode(cursor);
     const workspaceStandups = await standups.getAll(
       documentClient,
@@ -197,22 +193,24 @@ module.exports.getStandupUpdates = async (event, context) => {
     // "queryStringParameters" defaults to "null"
     // So destructuring with a default value doesn't work (must be "undefined")
     const q = event.queryStringParameters || {};
-    const { date } = q;
-
-    validateDate(date);
+    const { limit = DEFAULT_UPDATES_LIMIT, cursor } = q;
+    const exclusiveStartKey = pageCursor.decode(cursor);
 
     const { standupId } = event.pathParameters;
-    const updatesData = await updates.getAllForDate(
+    const updatesData = await updates.getAll(
       documentClient,
       WORKSPACES_TABLE_NAME,
       authorizer.workspaceId,
       standupId,
-      date
+      limit,
+      exclusiveStartKey
     );
 
     const resData = {
-      date,
-      items: updatesData.Items
+      items: updatesData.Items,
+      cursor: {
+        next: pageCursor.encode(updatesData.LastEvaluatedKey)
+      }
     };
     return sendRes.json(200, resData);
   } catch (err) {

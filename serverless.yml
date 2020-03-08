@@ -43,7 +43,8 @@ provider:
     WORKSPACES_TABLE_NAME:
       'Fn::Select':
         ['1', { 'Fn::Split': ['/', '${state:infra.workspacesTableArn}'] }]
-    DEFAULT_QUERY_LIMIT: 10
+    DEFAULT_STANDUPS_LIMIT: 10
+    DEFAULT_UPDATES_LIMIT: 20
     CREATE_STANDUP_SCOPE: 'create:standup'
     READ_STANDUPS_SCOPE: 'read:standups'
     READ_STANDUP_SCOPE: 'read:standup'
@@ -115,7 +116,8 @@ functions:
               paths:
                 standupId: true
               queryStrings:
-                date: false # optional query param
+                limit: false # optional query param
+                cursor: false # optional query param
           cors: ${self:custom.cors}
           authorizer: ${self:custom.authorizer}
 
