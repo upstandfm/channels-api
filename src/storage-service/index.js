@@ -136,6 +136,48 @@ module.exports = function createStorageService(client, tableName) {
         .get(params)
         .promise()
         .then(res => res.Item);
+    },
+
+    /**
+     * Get all channel recording items.
+     *
+     * @param {String} workspaceId
+     * @param {String} channelId
+     * @param {Number} limit - How many items to get
+     * @param {Object} exclusiveStartKey - DynamoDB primary key
+     *
+     * @return {Promise} Resolves with items
+     *
+     * For SDK documentation see:
+     * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property
+     */
+    getChannelRecordings(workspaceId, channelId, limit, exclusiveStartKey) {
+      const params = {
+        TableName: tableName,
+
+        // For reserved keywords see:
+        // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ReservedWords.html
+        ExpressionAttributeNames: {
+          '#n': 'name'
+        },
+
+        ExpressionAttributeValues: {
+          ':pk': `workspace#${workspaceId}#channel#${channelId}`,
+          ':sk_start': `recording#`
+        },
+        KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk_start)',
+        ProjectionExpression:
+          'id, createdBy, createdAt, updatedAt, #n, transcodingStatus, transcodedFileKey',
+
+        // By default sort order is ascending
+        // Setting "ScanIndexForward" to false, sorts descending
+        ScanIndexForward: false,
+
+        Limit: limit,
+        ExclusiveStartKey: exclusiveStartKey
+      };
+
+      return client.query(params).promise();
     }
   };
 };

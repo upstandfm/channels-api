@@ -10,7 +10,7 @@ describe('Channel service', () => {
       }).toThrowError(/^Provide a storage service$/);
     });
 
-    it('creates workspace service', () => {
+    it('creates service', () => {
       expect(() => {
         const fakeStorage = {};
         createChannelService(fakeStorage);
@@ -52,7 +52,7 @@ describe('Channel service', () => {
   });
 
   describe('channelService.getAll(workspaceId, limit, exclusiveStartKey)', () => {
-    it('calls storage service with workspace ID', async () => {
+    it('calls storage service with workspace ID, limit and exclusive start key', async () => {
       const fakeStorage = {
         getWorkspaceChannels: jest.fn(() => Promise.resolve())
       };

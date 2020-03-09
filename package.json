@@ -5,6 +5,7 @@
   "description": "Standups RESTful API.",
   "scripts": {
     "test": "jest",
+    "tdd": "npm run test -- --watch",
     "lint": "eslint 'src/**/*.js'",
     "lint:format": "npm run lint -- --fix",
     "sls:debug": "serverless print"
