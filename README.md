@@ -1,8 +1,8 @@
-# Standups API
+# Channels API
 
-[![CircleCI](https://circleci.com/gh/upstandfm/standups-api.svg?style=svg)](https://circleci.com/gh/upstandfm/standups-api)
+[![CircleCI](https://circleci.com/gh/upstandfm/channels-api.svg?style=svg)](https://circleci.com/gh/upstandfm/channels-api)
 
-Standups RESTful API.
+Channels RESTful API.
 
 ## Table of contents
 
@@ -64,7 +64,7 @@ Prints the `serverless.yaml` configuration.
 
 ## Monitoring
 
-A [Serverless dashboard](https://dashboard.serverless.com/tenants/upstandfm/applications/standups-api/services/standups-api/stage/prod/region/eu-central-1#service-overview=overview) has been setup for:
+A [Serverless dashboard](https://dashboard.serverless.com/tenants/upstandfm/applications/channels-api/services/channels-api/stage/prod/region/eu-central-1#service-overview=overview) has been setup for:
 
 - Alerts (errors)
 - RED metrics

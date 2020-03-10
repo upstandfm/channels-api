@@ -1,8 +1,8 @@
 {
-  "name": "standups-api",
+  "name": "channels-api",
   "version": "1.0.0",
   "private": true,
-  "description": "Standups RESTful API.",
+  "description": "Channels RESTful API.",
   "scripts": {
     "test": "jest",
     "tdd": "npm run test -- --watch",
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/upstandfm/standups-api.git"
+    "url": "git+https://github.com/upstandfm/channels-api.git"
   },
   "author": "Daniël Illouz <daniel.illouz@me.com> (https://www.danillouz.dev/)",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/upstandfm/standups-api/issues"
+    "url": "https://github.com/upstandfm/channels-api/issues"
   },
-  "homepage": "https://github.com/upstandfm/standups-api#readme",
+  "homepage": "https://github.com/upstandfm/channels-api#readme",
   "lint-staged": {
     "src/**/*.{js,json,md}": "npm run lint:format"
   },

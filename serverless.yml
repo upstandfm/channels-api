@@ -1,6 +1,6 @@
 org: upstandfm
 app: api
-service: standups-api
+service: channels-api
 
 plugins:
   - serverless-domain-manager
@@ -8,7 +8,7 @@ plugins:
 custom:
   customDomain:
     domainName: api.upstand.fm
-    basePath: standups
+    basePath: channels
     stage: ${opt:stage, 'prod'}
     createRoute53Record: false
   cors:
