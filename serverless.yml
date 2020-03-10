@@ -43,12 +43,12 @@ provider:
     WORKSPACES_TABLE_NAME:
       'Fn::Select':
         ['1', { 'Fn::Split': ['/', '${state:infra.workspacesTableArn}'] }]
-    DEFAULT_STANDUPS_LIMIT: 10
-    DEFAULT_UPDATES_LIMIT: 20
-    CREATE_STANDUP_SCOPE: 'create:standup'
-    READ_STANDUPS_SCOPE: 'read:standups'
-    READ_STANDUP_SCOPE: 'read:standup'
-    READ_UPDATES_SCOPE: 'read:updates'
+    DEFAULT_CHANNELS_LIMIT: 10
+    DEFAULT_RECORDINGS_LIMIT: 20
+    CREATE_CHANNEL_SCOPE: 'create:channel'
+    READ_CHANNELS_SCOPE: 'read:channels'
+    READ_CHANNEL_SCOPE: 'read:channel'
+    READ_CHANNEL_RECORDINGS_SCOPE: 'read:channel-recordings'
 
   # See: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_actions-resources-contextkeys.html
   iamRoleStatements:
@@ -68,18 +68,18 @@ package:
     - src
 
 functions:
-  createStandup:
-    handler: src/handler.createStandup
-    description: Creates a standup in the user's workspace
+  createChannel:
+    handler: src/handler.createChannel
+    description: Creates a channel in the user's workspace
     events:
       - http:
           method: post
           path: /
           cors: ${self:custom.cors}
           authorizer: ${self:custom.authorizer}
-  getStandups:
-    handler: src/handler.getStandups
-    description: Gets all standups in the user's workspace
+  getChannels:
+    handler: src/handler.getChannels
+    description: Gets all channels in the user's workspace
     events:
       - http:
           method: get
@@ -91,30 +91,30 @@ functions:
                 cursor: false # optional query param
           cors: ${self:custom.cors}
           authorizer: ${self:custom.authorizer}
-  getStandup:
-    handler: src/handler.getStandup
-    description: Gets a single standup in the user's workspace
+  getChannel:
+    handler: src/handler.getChannel
+    description: Gets a single channel in the user's workspace
     events:
       - http:
           method: get
-          path: /{standupId}
+          path: /{channelId}
           request:
             parameters:
               paths:
-                standupId: true
+                channelId: true
           cors: ${self:custom.cors}
           authorizer: ${self:custom.authorizer}
-  getStandupUpdates:
-    handler: src/handler.getStandupUpdates
-    description: Gets all standup updates for a date
+  getChannelRecordings:
+    handler: src/handler.getChannelRecordings
+    description: Gets all channel recordings
     events:
       - http:
           method: get
-          path: /{standupId}/updates
+          path: /{channelId}/recordings
           request:
             parameters:
               paths:
-                standupId: true
+                channelId: true
               queryStrings:
                 limit: false # optional query param
                 cursor: false # optional query param

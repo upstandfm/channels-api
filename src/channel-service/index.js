@@ -9,7 +9,7 @@ const shortid = require('shortid');
  *
  * @return {Object} Channel service interface
  */
-module.exports = function createWorkspaceService(db) {
+module.exports = function createChannelService(db) {
   if (!db) {
     throw new Error('Provide a storage service');
   }
