@@ -10,7 +10,7 @@ describe('validateAuthorizerData(data)', () => {
     try {
       validateAuthorizerData();
     } catch (err) {
-      expect(err).toHaveProperty('message', 'Missing Authorizer Data');
+      expect(err).toHaveProperty('message', 'Missing authorizer data');
       expect(err).toHaveProperty('details', errDetails);
       expect(err).toHaveProperty('statusCode', errStatusCode);
     }
@@ -20,7 +20,7 @@ describe('validateAuthorizerData(data)', () => {
     try {
       validateAuthorizerData({});
     } catch (err) {
-      expect(err).toHaveProperty('message', 'Missing User ID');
+      expect(err).toHaveProperty('message', 'Missing user id');
       expect(err).toHaveProperty('details', errDetails);
       expect(err).toHaveProperty('statusCode', errStatusCode);
     }
@@ -30,7 +30,7 @@ describe('validateAuthorizerData(data)', () => {
     try {
       validateAuthorizerData({ userId: '1' });
     } catch (err) {
-      expect(err).toHaveProperty('message', 'Missing Workspace ID');
+      expect(err).toHaveProperty('message', 'Missing workspace id');
       expect(err).toHaveProperty('details', errDetails);
       expect(err).toHaveProperty('statusCode', errStatusCode);
     }
