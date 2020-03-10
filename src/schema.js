@@ -8,21 +8,21 @@ const defaultJoi = Joi.defaults(_schema =>
   })
 );
 
-const _standupSchema = defaultJoi.object().keys({
+const _channelSchema = defaultJoi.object().keys({
   name: Joi.string()
     .required()
     .max(70)
 });
 
 function _validate(data, schema) {
-  const { error, value } = schema.validate(data);
+  const { error: joiErr, value } = schema.validate(data);
 
   // For Joi "error" see:
   // https://github.com/hapijs/joi/blob/master/API.md#validationerror
-  if (error) {
+  if (joiErr) {
     const err = new Error('Invalid request data');
     err.statusCode = 400;
-    err.details = error.details.map(e => e.message);
+    err.details = joiErr.details.map(e => e.message);
     throw err;
   }
 
@@ -30,7 +30,7 @@ function _validate(data, schema) {
 }
 
 module.exports = {
-  validateStandup(data = {}) {
-    return _validate(data, _standupSchema);
+  validateChannel(data = {}) {
+    return _validate(data, _channelSchema);
   }
 };
